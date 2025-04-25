@@ -37,19 +37,24 @@ y               = train_set[train_set.columns[1]].values
 
 model = PySRRegressor(
     maxsize=20,
-    niterations=40,  # < Increase me for better results
-    binary_operators=["+", "*"],
+    niterations=10000,  # < Increase me for better results
+    binary_operators=["*", "+", "-", "/"],
     unary_operators=[
         "cos",
         "exp",
         "sin",
         "inv(x) = 1/x",
-        # ^ Custom operator (julia syntax)
+        "tan",
+        "sqrt",
+        "square",
+        "log",
+        "cube"
     ],
+    # early_stop_condition=(
+    #     "stop_if(loss) = loss < 1e-4"
+    # ),
     extra_sympy_mappings={"inv": lambda x: 1 / x},
-    # ^ Define operator for SymPy as well
     elementwise_loss="loss(prediction, target) = (prediction - target)^2",
-    # ^ Custom loss function (julia syntax)
 )
 
 model.fit(X, y)
@@ -58,17 +63,18 @@ y2              = model.predict(X)
 ti              = train_set['Time'].values
 mape_model      = mape(y, y2)
 print(f'Mean absolute percentage error (MAPE) for train: {mape_model}')
-plot_results(ti, [y, y2], ['ERA5 H_s', 'PySR H_S - train'], 'Data', 'Wave height ($H_s$)', 'train-v0', '$'+fig_title +'$')
+plot_results(ti, [y, y2], ['ERA5 H_s', 'PySR H_S - train'], 'Data', 'Wave height ($H_s$)', 'train-v2', '$'+fig_title +'$' + f'---- Train MAPE: {mape_model}')
 
 X_test          = test_set[test_set.columns[2:]].values
 y_test          = test_set[test_set.columns[1]].values
 y3              = model.predict(X_test)
 t_test          = test_set['Time'].values
-plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)', 'test-v0', '$'+fig_title +'$')
-
 mape_model      = mape(y_test, y3)
+print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
+plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)', 'test-v2', '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}')
+
 error           = erro(y_test, y3)
-plot_results(t_test, [error], ['Abs. error'], 'Data', 'Abs. error $\Delta_{\text{rel}}$', 'error-v0', '$'+fig_title +'$' + f'---- MAPE: {mape_model}')
+plot_results(t_test, [error], ['Abs. error'], 'Data', 'Abs. error $\Delta_{\text{rel}}$', 'error-v2', '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}')
 
 
 print('###############################################')
