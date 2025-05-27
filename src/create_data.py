@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
+import config
 
-def get_data(dataset, lat, lon):
+def single_point_df(dataset, lat, lon):
     rg_lat      = lat
     rg_long     = lon
     latlon      = dataset.sel(latitude=rg_lat, longitude=rg_long, method='nearest')
@@ -16,11 +17,40 @@ def get_data(dataset, lat, lon):
     rg_rea      = rg_rea.set_index('Time')
     return rg_rea
 
+def space_df(dataset, lat, lon):
+    rg_lat      = lat
+    rg_long     = lon
+    latlon      = dataset.sel(latitude=rg_lat, longitude=rg_long, method='nearest')
+    rg_rea      = pd.DataFrame({
+        'Time'           : pd.to_datetime(dataset.time.values),
+        'Hs'             : latlon.swh.values,
+        '10m_direc'      : latlon.dwi.values,
+        '10m_speed'      : latlon.wind.values,
+        'Peak_period'    : latlon.pp1d.values,
+        'latitude'       : rg_lat,
+        'longitude'      : rg_long
+    })
+    #rg_rea      = rg_rea.set_index('Time')
+    return rg_rea
 
-path            = './data/raw/era5_reanalysis_utlimos_dados.nc'
+
+path            = config.raw_df_path
+flag            = config.flag
 data_era        = xr.open_dataset(path)
-rg_lat          = -27.24
-rg_long         = -47.15
-df              = get_data(data_era, rg_lat, rg_long)
+
+if flag:
+    lat      = config.latitude
+    long     = config.longitude
+    df          = single_point_df(data_era, lat, long)
+else:
+    lats        = data_era.latitude.values
+    longs       = data_era.longitude.values
+    yv, xv      = np.meshgrid(lats, longs)
+    df_latlong  = pd.DataFrame(dict(long=xv.ravel(), lat=yv.ravel()))
+    lst_latlong = df_latlong.values    
+    df          = pd.DataFrame()
+    for x in lst_latlong:
+        aux_df  = space_df(data_era, x[1], x[0])
+        df      = pd.concat([df,aux_df], ignore_index = True)
 
 df.to_csv('./data/processed/era5_structured_dataset.csv')
