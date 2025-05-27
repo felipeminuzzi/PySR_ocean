@@ -1,0 +1,13 @@
+Complexity,Loss,Equation
+1,1.1977113,"3.3520775"
+2,0.771531,"sqrt(10m_speed)"
+4,0.7142,"sqrt(10m_speed * 1.1560621)"
+5,0.62901956,"exp(sqrt(10m_speed / 6.8871803))"
+6,0.5684182,"exp((10m_speed * 0.06968058) - -0.47105554)"
+8,0.45007414,"(Peak_period / (inv(10m_speed) / 0.022164851)) + 1.0458196"
+9,0.3780995,"square(Peak_period / (inv(10m_speed) / 0.0100055905)) + 2.1155777"
+11,0.36764783,"square(Peak_period / (inv(10m_speed + -1.6843718) / 0.010953138)) + 2.2429464"
+13,0.3650567,"square(Peak_period / (inv((10m_speed * -0.22859943) + 0.5538993) / -0.04966689)) + 2.3337088"
+15,0.36381245,"square(Peak_period / (inv(((Peak_period / -10.193874) + -0.06282024) + 10m_speed) / -0.010959484)) + 2.160266"
+16,0.35911846,"square(Peak_period / (inv(10m_speed + (Peak_period / (inv(Peak_period) / -0.011254066))) / -0.011254066)) + 2.1602662"
+17,0.35264912,"square(Peak_period / (inv((Peak_period / (Peak_period + -19.97281)) + (10m_speed - -0.058372628)) / -0.010959484)) + 2.160266"

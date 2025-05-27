@@ -15,7 +15,7 @@ def erro(y_true, y_pred):
 
 def plot_results(x,y,leg_name,x_tk,y_tk,fig_name,fig_title):
     
-    lst_colors = ['r-','k--','b-','']
+    lst_colors = ['r-','k--','b-','-g']
     plt.figure()
     plt.title(f'PySR prediction for H_s. Function: {fig_title}')
     for k, i in enumerate(y):
@@ -29,15 +29,22 @@ def plot_results(x,y,leg_name,x_tk,y_tk,fig_name,fig_title):
 path            = './data/processed/era5_structured_dataset.csv'
 df              = pd.read_csv(path)
 df['Time']      = pd.to_datetime(df['Time'])
+column_names    = df.columns.tolist()[2:]
+var_names       = {}
+
+for k in range(len(column_names)):
+    var_names[column_names[k]] = f'x{k}'
+
+df.rename(columns = var_names, inplace=True)
 test_set        = df[-(59*24):].copy().reset_index(drop=True)
 train_set       = df[-(59*24 + (366*24)):-(59*24)].copy().reset_index(drop=True)
 
-X               = train_set[train_set.columns[2:]].values
-y               = train_set[train_set.columns[1]].values
+X               = train_set[train_set.columns[2:]]
+y               = train_set[train_set.columns[1]]
 
 model = PySRRegressor(
-    maxsize=20,
-    niterations=10000,  # < Increase me for better results
+    maxsize=30,
+    niterations=1000,  # < Increase me for better results
     binary_operators=["*", "+", "-", "/"],
     unary_operators=[
         "cos",
@@ -55,6 +62,7 @@ model = PySRRegressor(
     # ),
     extra_sympy_mappings={"inv": lambda x: 1 / x},
     elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    procs = 16
 )
 
 model.fit(X, y)
