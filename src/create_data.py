@@ -39,8 +39,8 @@ flag            = config.flag
 data_era        = xr.open_dataset(path)
 
 if flag:
-    lat      = config.latitude
-    long     = config.longitude
+    lat         = config.latitude
+    long        = config.longitude
     df          = single_point_df(data_era, lat, long)
 else:
     lats        = data_era.latitude.values
@@ -52,5 +52,6 @@ else:
     for x in lst_latlong:
         aux_df  = space_df(data_era, x[1], x[0])
         df      = pd.concat([df,aux_df], ignore_index = True)
+    df          = df.set_index('Time')
 
 df.to_csv('./data/processed/era5_structured_dataset.csv')

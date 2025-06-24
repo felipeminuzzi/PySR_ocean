@@ -1,4 +1,5 @@
 import sympy
+import config
 import numpy as np
 import pandas as pd
 from pysr import PySRRegressor
@@ -36,15 +37,18 @@ for k in range(len(column_names)):
     var_names[column_names[k]] = f'x{k}'
 
 df.rename(columns = var_names, inplace=True)
-test_set        = df[-(59*24):].copy().reset_index(drop=True)
-train_set       = df[-(59*24 + (366*24)):-(59*24)].copy().reset_index(drop=True)
+tst_date        = config.test_initial_date
+trn_date        = config.train_initial_date
 
+test_set        = df[df['Time'] >= pd.to_datetime(tst_date)].copy().reset_index(drop=True)
+train_set       = df[(df['Time'] < pd.to_datetime(tst_date)) & 
+                     (df['Time'] >= pd.to_datetime(trn_date))].copy().reset_index(drop=True)
 X               = train_set[train_set.columns[2:]]
 y               = train_set[train_set.columns[1]]
 
 model = PySRRegressor(
     maxsize=30,
-    niterations=1000,  # < Increase me for better results
+    niterations=300,  # < Increase me for better results
     binary_operators=["*", "+", "-", "/"],
     unary_operators=[
         "cos",
@@ -68,22 +72,40 @@ model = PySRRegressor(
 model.fit(X, y)
 fig_title       = model.latex()
 y2              = model.predict(X)
-ti              = train_set['Time'].values
-mape_model      = mape(y, y2)
-print(f'Mean absolute percentage error (MAPE) for train: {mape_model}')
-plot_results(ti, [y, y2], ['ERA5 H_s', 'PySR H_S - train'], 'Data', 'Wave height ($H_s$)', 'train-v2', '$'+fig_title +'$' + f'---- Train MAPE: {mape_model}')
+ti              = train_set['Time'].values     
 
-X_test          = test_set[test_set.columns[2:]].values
-y_test          = test_set[test_set.columns[1]].values
-y3              = model.predict(X_test)
-t_test          = test_set['Time'].values
+#to do:
+#adicionar a coluna y2 ao X e salvar o df como resultado do treino.
+
+if config.flag:
+    X_test          = test_set[test_set.columns[2:]]
+    y_test          = test_set[test_set.columns[1]]
+    y3              = model.predict(X_test)
+    t_test          = test_set['Time'].values
+else:
+    test_df         = test_set[(test_set['x3'] == config.lat_tst) & 
+                               (test_set['x4'] == config.long_tst)]
+    X_test          = test_df[test_set.columns[2:]]
+    y_test          = test_df[test_set.columns[1]]
+    y3              = model.predict(X_test)
+    t_test          = test_df['Time'].values    
+
 mape_model      = mape(y_test, y3)
 print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
-plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)', 'test-v2', '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}')
+plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)', 'test-v4_nit300', '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}')
 
 error           = erro(y_test, y3)
-plot_results(t_test, [error], ['Abs. error'], 'Data', 'Abs. error $\Delta_{\text{rel}}$', 'error-v2', '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}')
+plot_results(t_test, [error], ['Abs. error'], 'Data', 'Abs. error $\Delta_{\text{rel}}$', 'error-v4_nit300', '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}')
 
+print('###############################################')
+print('Legend of variables:                           ')
+print(var_names)
+print('###############################################')
+
+print('###############################################')
+print('Equation:                                      ')
+print(fig_title)
+print('###############################################')
 
 print('###############################################')
 print('###############################################')
