@@ -1,4 +1,5 @@
 import sympy
+import os
 import config
 import glob
 import numpy as np
@@ -15,7 +16,7 @@ def erro(y_true, y_pred):
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     return np.abs((y_true - y_pred)/y_true)*100
 
-def plot_results(x,y,leg_name,x_tk,y_tk,fig_name,fig_title):
+def plot_results(x,y,leg_name,x_tk,y_tk,fig_name,type,fig_title):
     
     lst_colors = ['r-','k--','b-','-g']
     plt.figure()
@@ -26,7 +27,19 @@ def plot_results(x,y,leg_name,x_tk,y_tk,fig_name,fig_title):
     plt.ylabel(y_tk)
     plt.xlabel(x_tk)    
     plt.legend()
-    plt.savefig(f'./results/pysr_prediction_{fig_name}.png', bbox_inches='tight')
+    plt.savefig(f'{fig_name}pysr_prediction_{type}.png', bbox_inches='tight')
+    plt.close()
+
+def format_path(path):
+    """""Formats the path string in order to avoid conflicts."""
+
+    if path[-1]!='/':
+        path = path + '/'
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    return path
 
 path            = './data/processed/era5_structured_dataset.csv'
 df              = pd.read_csv(path)
@@ -89,6 +102,9 @@ if config.flag:
     mape_model      = mape(y_test, y3)
     figure_title    = '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}' 
     save_name       =  f'test-v4_nit300' 
+    save_path       = format_path(f'./results/{save_name}')
+    df_save         = pd.DataFrame({'time': t_test, 'real': y_test, 'pysr': y3}).reset_index(drop=True)
+    df_save.to_csv(save_path + 'df_results.csv')
 else:
     test_df         = test_set[(test_set['x3'] == config.lat_tst) & 
                                (test_set['x4'] == config.long_tst)]
@@ -98,17 +114,18 @@ else:
     t_test          = test_df['Time'].values  
     mape_model      = mape(y_test, y3)
     figure_title    = '$'+fig_title +'$' + f' -- lat: {config.lat_tst}; long: {config.long_tst}' +f'---- Test MAPE: {mape_model}'  
-    save_name       =  f'-v4_nit300_lat{config.lat_tst}_long{config.long_tst}'
-    #to do: criar e salvar df com series historicas de resultados
-
+    save_name       =  f'v4_nit300_lat{config.lat_tst}_long{config.long_tst}'
+    save_path       = format_path(f'./results/{save_name}')
+    df_save         = pd.DataFrame({'time': t_test, 'real': y_test, 'pysr': y3}).reset_index(drop=True)
+    df_save.to_csv(save_path + 'df_results.csv')
 
 print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
 plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)',
-             'test'+save_name, figure_title)
+             save_path, 'test', figure_title)
 
 error           = erro(y_test, y3)
 plot_results(t_test, [error], ['Rel. error'], 'Data', 'Relative. error $\Delta_{\text{rel}}$',
-             'error'+save_name, figure_title)
+             save_path, 'error', figure_title)
 
 print('###############################################')
 print('Legend of variables:                           ')

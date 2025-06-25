@@ -4,8 +4,8 @@ longitude          = -31
 flag               = False   #true for single point, false for space predict
 test_initial_date  = '2021-01-01'
 train_initial_date = '2020-01-01'
-lat_tst            = -50.5
-long_tst           = -32
+lat_tst            = -48.5
+long_tst           = -30.5
 new_train          = False #set true if want to train new model
 model_saved        = './outputs/20250602_085104_ht5Fqn'
 
