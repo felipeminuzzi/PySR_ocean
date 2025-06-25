@@ -1,5 +1,6 @@
 import sympy
 import config
+import glob
 import numpy as np
 import pandas as pd
 from pysr import PySRRegressor
@@ -46,30 +47,33 @@ train_set       = df[(df['Time'] < pd.to_datetime(tst_date)) &
 X               = train_set[train_set.columns[2:]]
 y               = train_set[train_set.columns[1]]
 
-model = PySRRegressor(
-    maxsize=30,
-    niterations=300,  # < Increase me for better results
-    binary_operators=["*", "+", "-", "/"],
-    unary_operators=[
-        "cos",
-        "exp",
-        "sin",
-        "inv(x) = 1/x",
-        "tan",
-        "sqrt",
-        "square",
-        "log",
-        "cube"
-    ],
-    # early_stop_condition=(
-    #     "stop_if(loss) = loss < 1e-4"
-    # ),
-    extra_sympy_mappings={"inv": lambda x: 1 / x},
-    elementwise_loss="loss(prediction, target) = (prediction - target)^2",
-    procs = 16
-)
+if config.new_train:
+    model = PySRRegressor(
+        maxsize=30,
+        niterations=300,  # < Increase me for better results
+        binary_operators=["*", "+", "-", "/"],
+        unary_operators=[
+            "cos",
+            "exp",
+            "sin",
+            "inv(x) = 1/x",
+            "tan",
+            "sqrt",
+            "square",
+            "log",
+            "cube"
+        ],
+        # early_stop_condition=(
+        #     "stop_if(loss) = loss < 1e-4"
+        # ),
+        extra_sympy_mappings={"inv": lambda x: 1 / x},
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+        procs = 16
+    )
 
-model.fit(X, y)
+    model.fit(X, y)
+else:
+    model = PySRRegressor.from_file(run_directory=config.model_saved)
 fig_title       = model.latex()
 y2              = model.predict(X)
 ti              = train_set['Time'].values     
@@ -82,20 +86,29 @@ if config.flag:
     y_test          = test_set[test_set.columns[1]]
     y3              = model.predict(X_test)
     t_test          = test_set['Time'].values
+    mape_model      = mape(y_test, y3)
+    figure_title    = '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}' 
+    save_name       =  f'test-v4_nit300' 
 else:
     test_df         = test_set[(test_set['x3'] == config.lat_tst) & 
                                (test_set['x4'] == config.long_tst)]
     X_test          = test_df[test_set.columns[2:]]
     y_test          = test_df[test_set.columns[1]]
     y3              = model.predict(X_test)
-    t_test          = test_df['Time'].values    
+    t_test          = test_df['Time'].values  
+    mape_model      = mape(y_test, y3)
+    figure_title    = '$'+fig_title +'$' + f' -- lat: {config.lat_tst}; long: {config.long_tst}' +f'---- Test MAPE: {mape_model}'  
+    save_name       =  f'-v4_nit300_lat{config.lat_tst}_long{config.long_tst}'
+    #to do: criar e salvar df com series historicas de resultados
 
-mape_model      = mape(y_test, y3)
+
 print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
-plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)', 'test-v4_nit300', '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}')
+plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)',
+             'test'+save_name, figure_title)
 
 error           = erro(y_test, y3)
-plot_results(t_test, [error], ['Abs. error'], 'Data', 'Abs. error $\Delta_{\text{rel}}$', 'error-v4_nit300', '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}')
+plot_results(t_test, [error], ['Rel. error'], 'Data', 'Relative. error $\Delta_{\text{rel}}$',
+             'error'+save_name, figure_title)
 
 print('###############################################')
 print('Legend of variables:                           ')
