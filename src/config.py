@@ -7,7 +7,7 @@ train_initial_date = '2020-01-01'
 lat_tst            = -48.5
 long_tst           = -30.5
 new_train          = False #set true if want to train new model
-model_saved        = './outputs/20250602_085104_ht5Fqn'
+model_saved        = './outputs/20250821_143148_JfaxVF'
 
 
 # array([-48. , -48.5, -49. , -49.5, -50. , -50.5, -51. ])
