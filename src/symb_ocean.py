@@ -5,7 +5,9 @@ import glob
 import numpy as np
 import pandas as pd
 from pysr import PySRRegressor
+from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
+
 plt.rcParams["figure.figsize"] = (18,4)
 
 def mape(y_true, y_pred):
@@ -29,6 +31,48 @@ def plot_results(x,y,leg_name,x_tk,y_tk,fig_name,type,fig_title):
     plt.legend()
     plt.savefig(f'{fig_name}pysr_prediction_{type}.png', bbox_inches='tight')
     plt.close()
+
+def plot_region(df,fig_name, type='test'):
+    
+    n_lat       = len(df['latitude'].unique())
+    n_long      = len(df['longitude'].unique())
+    dados_pysr  = df['pysr'].values.reshape(n_lat, n_long)
+    dados_era   = df['real'].values.reshape(n_lat, n_long)
+    error       = df['error'].values.reshape(n_lat, n_long)
+    lati        = df['latitude'].unique()
+    long        = df['longitude'].unique()
+    
+    plt.figure()
+    plt.subplot(131)
+    plt.title('PySR')
+    plot2map(long,lati,dados_pysr)
+    plt.subplot(132)
+    plt.title('ERA5')
+    plot2map(long,lati,dados_era)
+    plt.subplot(133)
+    plt.title('Relative. error $\Delta_{rel}$')
+    plot2map(long,lati,error)    
+    plt.savefig(f'{fig_name}pysr_prediction_{type}.png', bbox_inches='tight')
+    plt.close()
+
+def plot2map(lon, lat, dados):
+    map = Basemap(projection='cyl', llcrnrlon=lon.min(), 
+                  llcrnrlat=lat.min(), urcrnrlon=lon.max(), 
+                  urcrnrlat=lat.max(), resolution='h')
+    
+    map.fillcontinents(color=(0.55, 0.55, 0.55))
+    map.drawcoastlines(color=(0.3, 0.3, 0.3))
+    map.drawstates(color=(0.3, 0.3, 0.3))
+    map.drawparallels(np.linspace(lat.min(), lat.max(), 6), labels=[1,0,0,0],
+                      rotation=90, dashes=[1, 2], color=(0.3, 0.3, 0.3))
+    map.drawmeridians(np.linspace(lon.min(), lon.max(), 6), labels=[0,0,0,1], 
+                      dashes=[1, 2], color=(0.3, 0.3, 0.3))
+    llons, llats = np.meshgrid(lon, lat)
+    lons, lats = map(lon, lat)
+    m = map.contourf(llons, llats, dados)
+    plt.colorbar(m)
+
+    return m
 
 def format_path(path):
     """""Formats the path string in order to avoid conflicts."""
@@ -66,9 +110,31 @@ def predict_future(test, model, fig_title):
         save_path       = format_path(f'./results/{save_name}')
         df_save         = pd.DataFrame({'time': t_test, 'real': y_test, 'pysr': y3}).reset_index(drop=True)
         df_save.to_csv(save_path + 'df_results.csv')
-    
-    return figure_title, mape_model, save_path, t_test, y_test, y3
 
+    print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
+    plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)',
+                save_path, 'test', figure_title)
+
+    error              = erro(y_test, y3)
+    plot_results(t_test, [error], ['Rel. error'], 'Data', 'Relative. error $\Delta_{\text{rel}}$',
+                save_path, 'error', figure_title)
+
+def region_predict(test, model, fig_title):
+
+    df_test     = test[test['Time'] == pd.to_datetime(config.region_time)]
+    y_test      = df_test[df_test.columns[1]].values
+    X           = df_test[df_test.columns[2:]]
+    y3          = model.predict(X)
+    mape_model  = mape(y_test, y3)
+    figure_title= '$'+fig_title +'$'
+    save_name   =  f'v7_nit200_region_date{config.region_time}'
+    save_path   = format_path(f'./results/{save_name}')
+    df_save     = pd.DataFrame({'real': y_test, 'pysr': y3, 'latitude': df_test[df_test.columns[5]].values, 
+                                'longitude': df_test[df_test.columns[6]]}).reset_index(drop=True)
+    df_save.to_csv(save_path + 'df_results.csv')    
+    df_save['error'] = df_save.apply(lambda row: erro(row['real'], row['pysr']), axis=1)    
+    print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
+    plot_region(df_save,save_path)
 
 path            = './data/processed/era5_structured_dataset.csv'
 df              = pd.read_csv(path)
@@ -122,16 +188,10 @@ else:
 title_fig       = model.latex()
 y2              = model.predict(X)
 ti              = train_set['Time'].values     
-
-figure_title, mape_model, save_path, t_test, y_test, y3 = predict_future(test_set, model, title_fig)
-
-print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
-plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)',
-             save_path, 'test', figure_title)
-
-error           = erro(y_test, y3)
-plot_results(t_test, [error], ['Rel. error'], 'Data', 'Relative. error $\Delta_{\text{rel}}$',
-             save_path, 'error', figure_title)
+if config.flag:
+    predict_future(test_set, model, title_fig)
+else:
+    region_predict(test_set, model, title_fig)
 
 print('###############################################')
 print('Legend of variables:                           ')

@@ -9,6 +9,7 @@ long_tst           = -25.0
 new_train          = False #set true if want to train new model
 model_saved        = './outputs/20250826_101011_rxdZFv'
 future_predict     = True
+region_time        = '2024-10-31 09:00:00'
 
 
 # array([-48. , -48.5, -49. , -49.5, -50. , -50.5, -51. ])
