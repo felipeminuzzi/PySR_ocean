@@ -10,8 +10,8 @@ def single_point_df(dataset, lat, lon):
     rg_rea      = pd.DataFrame({
         'Time'           : pd.to_datetime(dataset.time.values),
         'Hs'             : latlon.swh.values,
-        '10m_direc'      : latlon.dwi.values,
-        '10m_speed'      : latlon.wind.values,
+        '10m_direc'      : latlon.u10.values,
+        '10m_speed'      : latlon.v10.values,
         'Peak_period'    : latlon.pp1d.values
     })
     rg_rea      = rg_rea.set_index('Time')
@@ -24,8 +24,8 @@ def space_df(dataset, lat, lon):
     rg_rea      = pd.DataFrame({
         'Time'           : pd.to_datetime(dataset.time.values),
         'Hs'             : latlon.swh.values,
-        '10m_direc'      : latlon.dwi.values,
-        '10m_speed'      : latlon.wind.values,
+        '10m_direc'      : latlon.u10.values,
+        '10m_speed'      : latlon.v10.values,
         'Peak_period'    : latlon.pp1d.values,
         'latitude'       : rg_lat,
         'longitude'      : rg_long

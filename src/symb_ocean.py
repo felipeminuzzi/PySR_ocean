@@ -81,7 +81,9 @@ if config.new_train:
         # ),
         extra_sympy_mappings={"inv": lambda x: 1 / x},
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
-        procs = 16
+        procs = 16,
+        batching=True,
+        batch_size=1000
     )
 
     model.fit(X, y)
@@ -114,7 +116,7 @@ else:
     t_test          = test_df['Time'].values  
     mape_model      = mape(y_test, y3)
     figure_title    = '$'+fig_title +'$' + f' -- lat: {config.lat_tst}; long: {config.long_tst}' +f'---- Test MAPE: {mape_model}'  
-    save_name       =  f'v5_nit200_lat{config.lat_tst}_long{config.long_tst}'
+    save_name       =  f'v6_nit200_lat{config.lat_tst}_long{config.long_tst}'
     save_path       = format_path(f'./results/{save_name}')
     df_save         = pd.DataFrame({'time': t_test, 'real': y_test, 'pysr': y3}).reset_index(drop=True)
     df_save.to_csv(save_path + 'df_results.csv')
