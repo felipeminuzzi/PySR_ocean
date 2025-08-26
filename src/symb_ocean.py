@@ -41,6 +41,35 @@ def format_path(path):
 
     return path
 
+def predict_future(test, model, fig_title):
+    if config.flag:
+        X_test          = test[test.columns[2:]]
+        y_test          = test[test.columns[1]]
+        y3              = model.predict(X_test)
+        t_test          = test['Time'].values
+        mape_model      = mape(y_test, y3)
+        figure_title    = '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}' 
+        save_name       =  f'test-v4_nit300' 
+        save_path       = format_path(f'./results/{save_name}')
+        df_save         = pd.DataFrame({'time': t_test, 'real': y_test, 'pysr': y3}).reset_index(drop=True)
+        df_save.to_csv(save_path + 'df_results.csv')
+    else:
+        test_df         = test[(test['x3'] == config.lat_tst) & 
+                                (test['x4'] == config.long_tst)]
+        X_test          = test_df[test.columns[2:]]
+        y_test          = test_df[test.columns[1]]
+        y3              = model.predict(X_test)
+        t_test          = test_df['Time'].values  
+        mape_model      = mape(y_test, y3)
+        figure_title    = '$'+fig_title +'$' + f' -- lat: {config.lat_tst}; long: {config.long_tst}' +f'---- Test MAPE: {mape_model}'  
+        save_name       =  f'v6_nit200_lat{config.lat_tst}_long{config.long_tst}'
+        save_path       = format_path(f'./results/{save_name}')
+        df_save         = pd.DataFrame({'time': t_test, 'real': y_test, 'pysr': y3}).reset_index(drop=True)
+        df_save.to_csv(save_path + 'df_results.csv')
+    
+    return figure_title, mape_model, save_path, t_test, y_test, y3
+
+
 path            = './data/processed/era5_structured_dataset.csv'
 df              = pd.read_csv(path)
 df['Time']      = pd.to_datetime(df['Time'])
@@ -89,37 +118,12 @@ if config.new_train:
     model.fit(X, y)
 else:
     model = PySRRegressor.from_file(run_directory=config.model_saved)
-fig_title       = model.latex()
+
+title_fig       = model.latex()
 y2              = model.predict(X)
 ti              = train_set['Time'].values     
 
-#to do:
-#adicionar a coluna y2 ao X e salvar o df como resultado do treino.
-
-if config.flag:
-    X_test          = test_set[test_set.columns[2:]]
-    y_test          = test_set[test_set.columns[1]]
-    y3              = model.predict(X_test)
-    t_test          = test_set['Time'].values
-    mape_model      = mape(y_test, y3)
-    figure_title    = '$'+fig_title +'$' + f'---- Test MAPE: {mape_model}' 
-    save_name       =  f'test-v4_nit300' 
-    save_path       = format_path(f'./results/{save_name}')
-    df_save         = pd.DataFrame({'time': t_test, 'real': y_test, 'pysr': y3}).reset_index(drop=True)
-    df_save.to_csv(save_path + 'df_results.csv')
-else:
-    test_df         = test_set[(test_set['x3'] == config.lat_tst) & 
-                               (test_set['x4'] == config.long_tst)]
-    X_test          = test_df[test_set.columns[2:]]
-    y_test          = test_df[test_set.columns[1]]
-    y3              = model.predict(X_test)
-    t_test          = test_df['Time'].values  
-    mape_model      = mape(y_test, y3)
-    figure_title    = '$'+fig_title +'$' + f' -- lat: {config.lat_tst}; long: {config.long_tst}' +f'---- Test MAPE: {mape_model}'  
-    save_name       =  f'v6_nit200_lat{config.lat_tst}_long{config.long_tst}'
-    save_path       = format_path(f'./results/{save_name}')
-    df_save         = pd.DataFrame({'time': t_test, 'real': y_test, 'pysr': y3}).reset_index(drop=True)
-    df_save.to_csv(save_path + 'df_results.csv')
+figure_title, mape_model, save_path, t_test, y_test, y3 = predict_future(test_set, model, title_fig)
 
 print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
 plot_results(t_test, [y_test, y3], ['ERA5 H_s', 'PySR H_S'], 'Data', 'Wave height ($H_s$)',
@@ -136,7 +140,7 @@ print('###############################################')
 
 print('###############################################')
 print('Equation:                                      ')
-print(fig_title)
+print(title_fig)
 print('###############################################')
 
 print('###############################################')
