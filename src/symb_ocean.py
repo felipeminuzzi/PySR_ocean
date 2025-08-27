@@ -1,7 +1,6 @@
-import sympy
 import os
 import config
-import glob
+import math
 import numpy as np
 import pandas as pd
 from pysr import PySRRegressor
@@ -32,7 +31,7 @@ def plot_results(x,y,leg_name,x_tk,y_tk,fig_name,type,fig_title):
     plt.savefig(f'{fig_name}pysr_prediction_{type}.png', bbox_inches='tight')
     plt.close()
 
-def plot_region(df,fig_name, type='test'):
+def plot_region(df,fig_name, mape_n, type='test'):
     
     n_lat       = len(df['latitude'].unique())
     n_long      = len(df['longitude'].unique())
@@ -42,20 +41,22 @@ def plot_region(df,fig_name, type='test'):
     lati        = df['latitude'].unique()
     long        = df['longitude'].unique()
     
+    cb_min = min(dados_era.min(), dados_pysr.min())
+    cb_max = max(dados_era.max(), dados_pysr.max())
     plt.figure()
     plt.subplot(131)
     plt.title('PySR')
-    plot2map(long,lati,dados_pysr)
+    plot2map(long,lati,dados_pysr, cb_min, cb_max, False)
     plt.subplot(132)
     plt.title('ERA5')
-    plot2map(long,lati,dados_era)
+    plot2map(long,lati,dados_era, cb_min, cb_max, False)
     plt.subplot(133)
-    plt.title('Relative. error $\Delta_{rel}$')
-    plot2map(long,lati,error)    
+    plt.title('$\Delta_{rel}$'+f' -- MAPE: {round(mape_n,2)}')
+    plot2map(long,lati,error, cb_min, cb_max,  True)    
     plt.savefig(f'{fig_name}pysr_prediction_{type}.png', bbox_inches='tight')
     plt.close()
 
-def plot2map(lon, lat, dados):
+def plot2map(lon, lat, dados, vmi, vma, red):
     map = Basemap(projection='cyl', llcrnrlon=lon.min(), 
                   llcrnrlat=lat.min(), urcrnrlon=lon.max(), 
                   urcrnrlat=lat.max(), resolution='h')
@@ -69,7 +70,13 @@ def plot2map(lon, lat, dados):
                       dashes=[1, 2], color=(0.3, 0.3, 0.3))
     llons, llats = np.meshgrid(lon, lat)
     lons, lats = map(lon, lat)
-    m = map.contourf(llons, llats, dados)
+    
+    levels = np.linspace(math.floor(vmi), math.ceil(vma), 10)
+    if red:
+        m = map.contourf(llons, llats, dados, cmap = 'Reds')
+    else:
+        m = map.contourf(llons, llats, dados, levels=levels)
+    
     plt.colorbar(m)
 
     return m
@@ -127,14 +134,15 @@ def region_predict(test, model, fig_title):
     y3          = model.predict(X)
     mape_model  = mape(y_test, y3)
     figure_title= '$'+fig_title +'$'
-    save_name   =  f'v7_nit200_region_date{config.region_time}'
+    name_model  = config.model_saved.split('/')[-1][-6:]
+    save_name   =  f'v7_nit200_region_date{config.region_time}' + f'_{name_model}'
     save_path   = format_path(f'./results/{save_name}')
     df_save     = pd.DataFrame({'real': y_test, 'pysr': y3, 'latitude': df_test[df_test.columns[5]].values, 
                                 'longitude': df_test[df_test.columns[6]]}).reset_index(drop=True)
     df_save.to_csv(save_path + 'df_results.csv')    
     df_save['error'] = df_save.apply(lambda row: erro(row['real'], row['pysr']), axis=1)    
     print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
-    plot_region(df_save,save_path)
+    plot_region(df_save,save_path, mape_model)
 
 path            = './data/processed/era5_structured_dataset.csv'
 df              = pd.read_csv(path)
