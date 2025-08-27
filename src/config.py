@@ -7,7 +7,7 @@ train_initial_date = '2020-01-01'
 lat_tst            = -20.0
 long_tst           = -25.0
 new_train          = False #set true if want to train new model
-model_saved        = './outputs/20250826_160350_Z7VmrW'
+model_saved        = './outputs/20250826_101011_rxdZFv'
 future_predict     = True
 region_time        = '2023-07-02 09:00:00'
 

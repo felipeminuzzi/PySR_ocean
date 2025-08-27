@@ -68,7 +68,7 @@ def plot2map(lon, lat, dados, vmi, vma, red):
                       rotation=90, dashes=[1, 2], color=(0.3, 0.3, 0.3))
     map.drawmeridians(np.linspace(lon.min(), lon.max(), 6), labels=[0,0,0,1], 
                       dashes=[1, 2], color=(0.3, 0.3, 0.3))
-    llons, llats = np.meshgrid(lon, lat)
+    llats, llons = np.meshgrid(lat, lon)
     lons, lats = map(lon, lat)
     
     levels = np.linspace(math.floor(vmi), math.ceil(vma), 10)
