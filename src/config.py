@@ -3,13 +3,13 @@ latitude           = -49
 longitude          = -31
 flag               = False   #true for single point, false for space predict
 test_initial_date  = '2021-01-01'
-train_initial_date = '2018-01-01'
+train_initial_date = '2020-01-01'
 lat_tst            = -20.0
 long_tst           = -25.0
 new_train          = True #set true if want to train new model
 model_saved        = './outputs/20250826_101011_rxdZFv'
 future_predict     = True
-region_time        = '2023-07-02 09:00:00'
+region_time        = '2021-02-02 09:00:00'
 
 
 # array([-48. , -48.5, -49. , -49.5, -50. , -50.5, -51. ])

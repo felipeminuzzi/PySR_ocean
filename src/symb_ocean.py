@@ -135,7 +135,7 @@ def region_predict(test, model, fig_title):
     mape_model  = mape(y_test, y3)
     figure_title= '$'+fig_title +'$'
     name_model  = config.model_saved.split('/')[-1][-6:]
-    save_name   =  f'v7_nit200_region_date{config.region_time}' + f'_{name_model}'
+    save_name   =  f'v10_nit200_region_date{config.region_time}' + f'_{name_model}'
     save_path   = format_path(f'./results/{save_name}')
     df_save     = pd.DataFrame({'real': y_test, 'pysr': y3, 'latitude': df_test[df_test.columns[5]].values, 
                                 'longitude': df_test[df_test.columns[6]]}).reset_index(drop=True)
@@ -169,11 +169,11 @@ if config.new_train:
         niterations=200,  # < Increase me for better results
         binary_operators=["*", "+", "-", "/"],
         unary_operators=[
-            "cos",
+#            "cos",
             "exp",
-            "sin",
+#            "sin",
             "inv(x) = 1/x",
-            "tan",
+#            "tan",
             "sqrt",
             "square",
             "log",
