@@ -126,19 +126,19 @@ def predict_future(test, model, fig_title):
     plot_results(t_test, [error], ['Rel. error'], 'Data', 'Relative. error $\Delta_{\text{rel}}$',
                 save_path, 'error', figure_title)
 
-def region_predict(test, model, fig_title):
+def region_predict(test, model, fig_title, v_names):
 
     df_test     = test[test['Time'] == pd.to_datetime(config.region_time)]
-    y_test      = df_test[df_test.columns[1]].values
-    X           = df_test[df_test.columns[2:]]
+    y_test      = df_test[config.target_var].values
+    X           = df_test[[i for i in v_names.values()]]
     y3          = model.predict(X)
     mape_model  = mape(y_test, y3)
     figure_title= '$'+fig_title +'$'
     name_model  = config.model_saved.split('/')[-1][-6:]
-    save_name   =  f'v10_nit200_region_date{config.region_time}' + f'_{name_model}'
+    save_name   =  f'v11_nit300_region_date{config.region_time}' + f'_{name_model}'
     save_path   = format_path(f'./results/{save_name}')
-    df_save     = pd.DataFrame({'real': y_test, 'pysr': y3, 'latitude': df_test[df_test.columns[5]].values, 
-                                'longitude': df_test[df_test.columns[6]]}).reset_index(drop=True)
+    df_save     = pd.DataFrame({'real': y_test.reshape(len(y_test)), 'pysr': y3, 'latitude': df_test[v_names['latitude']].values, 
+                                'longitude': df_test[v_names['longitude']].values}).reset_index(drop=True)
     df_save.to_csv(save_path + 'df_results.csv')    
     df_save['error'] = df_save.apply(lambda row: erro(row['real'], row['pysr']), axis=1)    
     print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
@@ -147,7 +147,8 @@ def region_predict(test, model, fig_title):
 path            = './data/processed/era5_structured_dataset.csv'
 df              = pd.read_csv(path)
 df['Time']      = pd.to_datetime(df['Time'])
-column_names    = df.columns.tolist()[2:]
+df              = df[['Time'] + config.feature_var + config.target_var]
+column_names    = config.feature_var
 var_names       = {}
 
 for k in range(len(column_names)):
@@ -160,13 +161,14 @@ trn_date        = config.train_initial_date
 test_set        = df[df['Time'] >= pd.to_datetime(tst_date)].copy().reset_index(drop=True)
 train_set       = df[(df['Time'] < pd.to_datetime(tst_date)) & 
                      (df['Time'] >= pd.to_datetime(trn_date))].copy().reset_index(drop=True)
-X               = train_set[train_set.columns[2:]]
-y               = train_set[train_set.columns[1]]
+
+X               = train_set[[i for i in var_names.values()]]
+y               = train_set[config.target_var]
 
 if config.new_train:
     model = PySRRegressor(
         maxsize=30,
-        niterations=200,  # < Increase me for better results
+        niterations=300,  # < Increase me for better results
         binary_operators=["*", "+", "-", "/"],
         unary_operators=[
 #            "cos",
@@ -197,9 +199,9 @@ title_fig       = model.latex()
 y2              = model.predict(X)
 ti              = train_set['Time'].values     
 if config.flag:
-    predict_future(test_set, model, title_fig)
+    predict_future(test_set, model, title_fig)#ajeitar o test set
 else:
-    region_predict(test_set, model, title_fig)
+    region_predict(test_set, model, title_fig, var_names)
 
 print('###############################################')
 print('Legend of variables:                           ')

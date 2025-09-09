@@ -31,6 +31,15 @@ def space_df(dataset, lat, lon):
         'longitude'      : rg_long
     })
     #rg_rea      = rg_rea.set_index('Time')
+    rg_rea['u10']      = rg_rea.apply(lambda x: (x['10m_direc']**2 + x['10m_speed']**2)**(1/2), axis=1)
+    rg_rea['u10_n']    = (rg_rea['u10']**2)/9.8
+    rg_rea['Peak_period_n'] = (9.8*rg_rea['Peak_period'])/rg_rea['u10']
+    rg_rea['Hs_n']     = rg_rea['Hs']/rg_rea['u10_n']
+    rg_rea['Wave_age'] = rg_rea['Peak_period_n']/(2*np.pi)
+    rg_rea['1/t_star'] = rg_rea.apply(lambda x: 1/max(x['Wave_age'], 1e-6),axis =1)
+    rg_rea['log_tstar']= rg_rea.apply(lambda x: np.log10(max(x['Wave_age'], 1e-6)),axis =1)
+    rg_rea['y']        = rg_rea['Hs']/rg_rea['u10_n']
+    
     return rg_rea
 
 
