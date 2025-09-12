@@ -127,7 +127,7 @@ def predict_future(test, model, fig_title):
                 save_path, 'error', figure_title)
 
 def region_predict(test, model, fig_title, v_names):
-
+    
     df_test     = test[test['Time'] == pd.to_datetime(config.region_time)]
     y_test      = df_test[config.target_var].values
     X           = df_test[[i for i in v_names.values()]]

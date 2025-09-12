@@ -39,7 +39,8 @@ def space_df(dataset, lat, lon):
     rg_rea['1/t_star'] = rg_rea.apply(lambda x: 1/max(x['Wave_age'], 1e-6),axis =1)
     rg_rea['log_tstar']= rg_rea.apply(lambda x: np.log10(max(x['Wave_age'], 1e-6)),axis =1)
     rg_rea['y']        = rg_rea['Hs']/rg_rea['u10_n']
-    
+    rg_rea['log_y']    = np.log10(rg_rea['y'])
+
     return rg_rea
 
 
