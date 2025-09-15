@@ -6,10 +6,10 @@ test_initial_date  = '2021-01-01'
 train_initial_date = '2018-01-01'
 lat_tst            = -20.0
 long_tst           = -25.0
-new_train          = True #set true if want to train new model
-model_saved        = './outputs/20250908_144613_tttttt'
+new_train          = False #set true if want to train new model
+model_saved        = './outputs/20250912_140050_5n0eWq'
 future_predict     = True
-region_time        = '2022-07-06 12:00:00'
+region_time        = '2021-04-12 12:00:00'
 feature_var        = ['Wave_age','1/t_star','log_tstar','latitude','longitude']
 target_var         = ['log_y']
 
