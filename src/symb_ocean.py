@@ -139,6 +139,7 @@ def region_predict(test, model, fig_title, v_names):
     save_path   = format_path(f'./results/{save_name}')
     df_save     = pd.DataFrame({'real': y_test.reshape(len(y_test)), 'pysr': y3, 'latitude': df_test[v_names['latitude']].values, 
                                 'longitude': df_test[v_names['longitude']].values}).reset_index(drop=True)
+    breakpoint()
     df_save.to_csv(save_path + 'df_results.csv')    
     df_save['error'] = df_save.apply(lambda row: erro(row['real'], row['pysr']), axis=1)    
     print(f'Mean absolute percentage error (MAPE) for test: {mape_model}')
