@@ -9,5 +9,6 @@ v11 - novas variáveis normalizadas: {'u10_n': 'x0', 'Peak_period_n': 'x1', 'Wav
 - Me0M9n: \log{\left(x_{0} + 4.83 \right)}
 - EVKWky: \log{\left(x_{0} + 4.83 \right)} - mape 22 p/ '2022-02-01 03:00:00'
 - vEy6iY: \left(x_{0} + x_{5}\right) 0.137 - treino com 500 nit
+- B45J8t: \log{\left(0.234 + \frac{3.27}{x_{3}} \right)} - all variables and log y, y = hs/u10n as target
 
 ['u10_n', 'Peak_period_n', 'Wave_age','10m_direc','10m_speed','Peak_period','latitude','longitude']
